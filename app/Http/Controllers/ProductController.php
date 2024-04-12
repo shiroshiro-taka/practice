@@ -82,16 +82,17 @@ class ProductController extends Controller
 
         $product->save();
 
-        return redirect()->back();
+        return redirect()->route('product.index');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show($id)
     {
         //
-        return view('products.show',['product' => $product]);
+        $product = Product::find($id);
+        return view('products.show',compact('product'));
     }
 
     /**

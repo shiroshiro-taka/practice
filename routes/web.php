@@ -19,4 +19,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('products', ProductController::class);
 });
 
+Route::get('/create', [ProductController::class, 'create'])->name('product.create');
 
+Route::post('/store', [ProductController::class, 'store'])->name('product.store');
+
+Route::get('/show/{id}', [ProductController::class, 'show'])->name('product.show');
