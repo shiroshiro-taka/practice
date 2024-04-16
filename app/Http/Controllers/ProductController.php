@@ -43,12 +43,39 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
         //
         $companies = Company::all();
 
         return view('products.create',compact('companies'));
+
+        $this->validate($request, $this->validationRuleForCreate);
+
+        try{
+            \DB::beginTransaction();
+
+            if($request->hasFile('image')){
+
+                $image_path = Item::IMAGE_DIR . Item::saveInage($request->file('image'));
+            }
+
+            $item = Item::make($request->all());
+            $item->image_path = $image_path ?? '';
+
+            $item->saveOrFail();
+
+            \DB::commit();
+
+            return ['message' => '保存に成功しました。'];    
+        }catch(\Throwable $e) {
+
+            \DB::rollback();
+
+            \log::error($e);
+
+            throw $e;
+        }
     }
 
     /**
@@ -82,7 +109,7 @@ class ProductController extends Controller
 
         $product->save();
 
-        return redirect()->route('product.index');
+        return redirect()->route('products.index');
     }
 
     /**
@@ -131,11 +158,22 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
-    {
+    //public function destroy(Product $product)
+    //{
         //
-        $product->delete();
+        //$product->delete();
 
-        return redirect('/products');
+        //return redirect('/products');
+    //}
+
+    public function destroy($id)
+    {
+        try {
+            Product::destroy($id);
+            return redirect('/products');
+        } catch (\Throwable $e) {
+            \Log::error($e);
+            throw $e;
+        }
     }
 }
