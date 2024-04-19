@@ -53,26 +53,27 @@ class ProductController extends Controller
         $this->validate($request, $this->validationRuleForCreate);
 
         try{
+
             \DB::beginTransaction();
 
-            if($request->hasFile('image')){
+            if($request->hasFile('img_path')){
 
-                $image_path = Item::IMAGE_DIR . Item::saveInage($request->file('image'));
+                $img_path = Product::IMAGE_DIR . Product::saveInage($request->file('img_path'));
             }
 
-            $item = Item::make($request->all());
-            $item->image_path = $image_path ?? '';
+            $item = Product::make($request->all());
+            $item->img_path = $img_path ?? '';
 
             $item->saveOrFail();
 
             \DB::commit();
 
-            return ['message' => '保存に成功しました。'];    
+            return redirect('/create');
         }catch(\Throwable $e) {
 
             \DB::rollback();
 
-            \log::error($e);
+            \Log::error($e);
 
             throw $e;
         }
@@ -136,7 +137,7 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
         //
         $request->validate([
@@ -145,14 +146,36 @@ class ProductController extends Controller
             'stock' => 'required',
         ]);
 
-        $product->product_name = $request->product_name;
+        try{
+            
+            \DB::beginTransaction();
 
-        $product->price = $request->price;
-        $product->stock = $request->stock;
+            $item = Product::findOrFail($id);
 
-        $product->save();
+            if ($request->hasFile('img_path')) {
 
-        return redirect()->back();
+                $img_path = Product::IMAGE_DIR . Product::updateImage($request->file('img_path'), $item->img_path);
+            }
+
+            $item->fill($request->all());
+            $item->img_path = $img_path ?? '';
+
+            $item->saveOrFail();
+
+            \DB::commit();
+
+            return redirect()->back();
+        } catch (ModelNotFoundException $e) {
+
+            throw $e;
+        } catch (\Throwable $e) {
+
+            \DB::rollback();
+
+            \Log::error($e);
+
+            throw $e;
+        }
     }
 
     /**
