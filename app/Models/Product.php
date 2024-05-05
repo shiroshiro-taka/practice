@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Kyslik\ColumnSortable\Sortable;
 
 class Product extends Model
 {
     use HasFactory;
+    use Sortable;
+
+    public $sortable = ['id', 'product_name', 'price', 'stock', 'company' ];
 
     protected $fillable = [
         'product_name',

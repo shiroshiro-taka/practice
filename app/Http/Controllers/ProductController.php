@@ -13,7 +13,8 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        //
+        $products = Product::sortable()->get();
+
         $searchWord = $request->input('searchWord');
         $companyId = $request->input('companyId');
 
@@ -27,7 +28,23 @@ class ProductController extends Controller
             $query->where('company_id',$companyId);
         }
 
-        $products = $query->orderBy('company_id', 'asc')->paginate(10);
+        if($min_price = $request->min_price){
+            $query->where('price', '>=', $min_price);
+        }
+
+        if($max_price = $request->max_price){
+            $query->where('price', '<=', $max_price);
+        }
+
+        if($min_stock = $request->min_stock){
+            $query->where('stock', '>=', $min_stock);
+        }
+
+        if($max_stock = $request->max_stock){
+            $query->where('stock', '<=', $max_stock);
+        }
+
+        $products = $query->sortable()->orderBy('company_id', 'asc')->paginate(10);
 
         $company = new Company;
         $companies = $company->getLists();
@@ -37,7 +54,7 @@ class ProductController extends Controller
             'companies' => $companies,
             'searchWord' => $searchWord,
             'companyId' => $companyId
-        ]);
+        ])->with('products', $products);
     }
 
     /**
